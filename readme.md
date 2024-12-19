@@ -59,41 +59,41 @@ StableDiffusionで作成したPNG画像をプロンプト情報を保持した�
 #### 1)アプリ上に複数のPNG画像ファイルかフォルダをドラッグ＆ドロップしてください  
 
 #### 2)必要があれば設定値を変更  
-
 ###### 2-1)JPG Quality
 JPG品質は1-100が指定でき、デフォルト値は85としています  
 100だとたいして小さくなりませんし、50とかにするとファイルサイズは小さくなりますがJpgノイズが目立ちます  
-お好みの値に調整してください（デフォルト値の85は、個人的に我慢できる限界の指定）  
-
+お好みの値に調整してください（デフォルト値の85は、個人的に我慢できる限界の値）  
 ###### 2-2)Number of Threads
 スレッド数は1-「CPUの最大スレッド数」が指定でき、デフォルト値は「CPUの最大スレッド数 - 1」としています  
 CPUの最大スレッド数を指定した方がほんの少しだけ早く終わりますが、OS動作がカクカクするかもしれません  
 
 #### 3)Convertボタンを押す  
-変換を開始します ※2  
+変換を開始します ※3  
 一応Cancelボタンを設けていますが、何千何万枚でなければすぐに終わります
 
-※2:GUI版ではPNGファイルと同じフォルダにJPGファイルを出力します
+#### status
+ファイルのドラッグ＆ドロップ時や変換実行後など、処理状況を表示します
+
+※3:GUI版ではPNGファイルと同じフォルダにJPGファイルを出力します
 
 ## 利用方法（コマンドライン版）
 以下の方法で利用できます  
-usage: PromptPng2Jpg.py [-h] [--quality QUALITY] [--threads THREADS] input output
-
-Convert PNG to JPG with metadata.
-
-positional arguments:
-  input              Input file or directory containing PNG files.
-  output             Output directory for JPEG files.
-
-options:
-  -h, --help         show this help message and exit
-  --quality QUALITY  JPEG quality (1-100). Default is 85.
-  --threads THREADS  Number of threads for parallel processing. Default is CPU Max Thread - 1.
+usage: PromptPng2Jpg.py [-h] [--quality QUALITY] [--threads THREADS] input output  
   
-
+Convert PNG to JPG with metadata.  
+  
+positional arguments:  
+  input              : Input file or directory containing PNG files.  
+  output             : Output directory for JPEG files.  
+  
+options:  
+  -h, --help         : show this help message and exit  
+  --quality QUALITY  : JPEG quality (1-100). Default is 85.  
+  --threads THREADS  : Number of threads for parallel processing. Default is CPU Max Thread - 1.  
+    
 ## 注意事項
 - Prompt情報はjpgのExifのUserCommentに保存しています  
 - Automatic1111とForgeの出力したPNGファイルでしか確認していません  
-- アプリによってはコメントの文字コードを正確に判断できないかもしれませんが、ForgeのPNG Infoでの読み込みが正常に行われる事を優先しました  
+- アプリによってはjpgのExifコメントの文字コードを正確に判断できないかもしれませんが、ForgeのPNG Infoでの読み込みが正常に行われる事を優先しました  
 
 以上
