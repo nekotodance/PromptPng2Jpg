@@ -13,7 +13,7 @@ StableDiffusionで作成したPNG画像をプロンプト情報を保持した�
 ![PromptPng2JpgGUI-image](docs/PromptPng2JpgGUI-image001.jpg)
 
 ## インストール方法（簡易）
-[簡易インストール版zipのダウンロード] https://github.com/nekotodance/PromptPng2Jpg/releases/download/latest/PromptPng2Jpg.zip
+[簡易インストール版zipのダウンロード] https://github.com/nekotodance/PromptPng2Jpg/releases/download/latest/PromptPng2JpgGUI.zip
 
 - zipファイルを解凍
 - 解凍したフォルダ内の「PromptPng2Jpg-install.ps1」を右クリックして「PowerShellで実行」を選択
