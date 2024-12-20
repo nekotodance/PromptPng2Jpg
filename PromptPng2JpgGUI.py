@@ -3,7 +3,7 @@ import os
 import time
 from PyQt5.QtCore import Qt, QRunnable, QThreadPool, QTimer
 from PyQt5.QtGui import QDragEnterEvent, QDropEvent
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSpinBox, QListWidget, QStatusBar
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSpinBox, QListWidget, QStatusBar, QCheckBox
 from PIL import Image
 import PromptPng2Jpg
 import pvsubfunc
@@ -16,14 +16,16 @@ GEOMETRY_W = "geometry-w"
 GEOMETRY_H = "geometry-h"
 JPG_QUALITY = "setting-jpgquality"
 THREADS_NUM = "setting-threadsnum"
+KEEP_TIMESTAMP = "setting-keeptimestamp"
 
 # マルチスレッド用ワーカークラス
 #T.B.C.:色々試したがプログレスバーの表示がどうにもうまく行かない。保留。
 class Worker(QRunnable):
-    def __init__(self, file_path, quality, on_complete):
+    def __init__(self, file_path, quality, keepTimestamp, on_complete):
         super().__init__()
         self.file_path = file_path
         self.quality = quality
+        self.keepTimestamp = keepTimestamp
         self.on_complete = on_complete
         self._is_cancelled = False
 
@@ -35,7 +37,7 @@ class Worker(QRunnable):
             with Image.open(self.file_path) as img:
                 if img.format == 'PNG':
                     jpg_path = self.file_path.rsplit('.', 1)[0] + '.jpg'
-                    PromptPng2Jpg.convert_to_jpg(self.file_path,os.path.dirname(self.file_path),self.quality)
+                    PromptPng2Jpg.convert_to_jpg(self.file_path,os.path.dirname(self.file_path),self.quality, self.keepTimestamp)
                     #ログ出力をすると2割くらい処理時間が増えるので止める
                     #print(f"Converted {self.file_path} to {jpg_path}")
                     if self._is_cancelled:
@@ -61,6 +63,7 @@ class MainWindow(QMainWindow):
 
         self.jpgquality = 85  # デフォルトのJPEG品質
         self.threadsnum = 11  # デフォルトのスレッド数
+        self.keepTimestamp = True  # Time stampの維持
 
         self.setWindowTitle('PNG to JPG Converter')
         self.setGeometry(100, 100, 640, 480)
@@ -100,6 +103,10 @@ class MainWindow(QMainWindow):
         self.threadSpinBox.setMaximum(os.cpu_count())  # 最大PCのCPUコア数
         self.threadSpinBox.setValue(self.threadsnum)  # デフォルト値はCPUコア数-1
         self.settingLayout.addWidget(self.threadSpinBox)
+        # タイムスタンプ維持のチェックボックス
+        self.keepTimestampCheckBox = QCheckBox('keep timestamp')
+        self.keepTimestampCheckBox.setChecked(self.keepTimestamp)
+        self.settingLayout.addWidget(self.keepTimestampCheckBox)
         self.layout.addLayout(self.settingLayout)
 
         # ボタンレイアウト（横並び）
@@ -120,12 +127,15 @@ class MainWindow(QMainWindow):
         self.statusBar.setStyleSheet("color: white; font-size: 14px; background-color: #31363b;")
         self.setStatusBar(self.statusBar)
 
+        # ボタン押下処理
         self.convertButton.clicked.connect(self.start_conversion)
         self.cancelButton.clicked.connect(self.cancel_conversion)
 
         # スピンボックスの値変更時に値を更新
         self.qualitySpinBox.valueChanged.connect(self.update_jpgquality_values)
         self.threadSpinBox.valueChanged.connect(self.update_threadsnum_values)
+        # チェックボックスの変更時に値を更新
+        self.keepTimestampCheckBox.stateChanged.connect(self.update_keeptimestamp_check)
 
         # スレッドプールの初期化
         self.thread_pool = QThreadPool()
@@ -174,9 +184,10 @@ class MainWindow(QMainWindow):
         # スレッド数を指定して変換処理をマルチスレッドで行う
         num_threads = self.threadSpinBox.value()  # スレッド数の取得
         self.thread_pool.setMaxThreadCount(num_threads)  # スレッドプールの最大スレッド数を設定
+        keepTimestamp = self.keepTimestampCheckBox.isChecked()
 
         for file_path in file_paths:
-            worker = Worker(file_path, self.jpgquality, self.on_complete)
+            worker = Worker(file_path, self.jpgquality, keepTimestamp, self.on_complete)
             self.workers.append(worker)  # Workerをリストに追加
             self.thread_pool.start(worker)  # スレッドプールにタスクを追加
 
@@ -200,6 +211,9 @@ class MainWindow(QMainWindow):
     def update_threadsnum_values(self):
         # スレッド数の値変更時に変数を更新
         self.threadsnum = self.threadSpinBox.value()
+    def update_keeptimestamp_check(self):
+        # タイムスタンプ保持の変数を更新
+        self.keepTimestamp = self.keepTimestampCheckBox.isChecked()
 
     # ドラッグエンター
     def dragEnterEvent(self, event: QDragEnterEvent):
@@ -247,6 +261,7 @@ class MainWindow(QMainWindow):
             self.threadsnum = os.cpu_count() - 1
             if self.threadsnum < 1:
                 self.threadsnum = 1 #今どき、1スレッドのCPUはないでしょうけど念の為
+        self.keepTimestamp = pvsubfunc.read_value_from_config(SETTINGS_FILE, KEEP_TIMESTAMP)
 
         #self.setGeometry(100, 100, 640, 480)    #位置とサイズ
         geox = pvsubfunc.read_value_from_config(SETTINGS_FILE, GEOMETRY_X)
@@ -262,6 +277,7 @@ class MainWindow(QMainWindow):
     def save_settings(self):
         pvsubfunc.write_value_to_config(SETTINGS_FILE, JPG_QUALITY, self.jpgquality)
         pvsubfunc.write_value_to_config(SETTINGS_FILE, THREADS_NUM, self.threadsnum)
+        pvsubfunc.write_value_to_config(SETTINGS_FILE, KEEP_TIMESTAMP, self.keepTimestamp)
 
         pvsubfunc.write_value_to_config(SETTINGS_FILE, GEOMETRY_X, self.geometry().x())
         pvsubfunc.write_value_to_config(SETTINGS_FILE, GEOMETRY_Y, self.geometry().y())

@@ -3,6 +3,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from PIL import Image, PngImagePlugin
 import piexif
+import shutil
 
 def extract_png_metadata(png_file):
     """Extracts metadata from a PNG file."""
@@ -51,7 +52,7 @@ def add_exif_user_comment(output_file, metadata):
     except Exception as e:
         print(f"Error adding EXIF UserComment: {e}")
 
-def convert_to_jpg(png_file, output_dir, quality):
+def convert_to_jpg(png_file, output_dir, quality, keeptimestamp):
     """Converts a PNG file to a JPEG file and embeds metadata."""
     try:
         metadata = extract_png_metadata(png_file)
@@ -66,10 +67,14 @@ def convert_to_jpg(png_file, output_dir, quality):
                 # Add metadata to Exif UserComment
                 add_exif_user_comment(output_file, metadata)
 
+            if keeptimestamp:
+                # Match the timestamp of the output file to the input file
+                shutil.copystat(png_file, output_file)
+
     except Exception as e:
         print(f"Error converting {png_file}: {e}")
 
-def process_files(input_path, output_dir, quality, max_workers):
+def process_files(input_path, output_dir, quality, max_workers, keeptimestamp):
     """Processes files or directories and converts PNG to JPEG."""
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -83,7 +88,7 @@ def process_files(input_path, output_dir, quality, max_workers):
             png_files.extend([os.path.join(root, f) for f in files if f.lower().endswith(".png")])
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(convert_to_jpg, png_file, output_dir, quality) for png_file in png_files]
+        futures = [executor.submit(convert_to_jpg, png_file, output_dir, quality, keeptimestamp) for png_file in png_files]
         for future in futures:
             future.result()
 
@@ -96,6 +101,7 @@ def main():
     parser.add_argument("output", type=str, help="Output directory for JPEG files.")
     parser.add_argument("--quality", type=int, default=85, help="JPEG quality (1-100). Default is 85.")
     parser.add_argument("--threads", type=int, default=os.cpu_count() - 1, help="Number of threads for parallel processing. Default is CPU Max Thread - 1.")
+    parser.add_argument("--keeptimestamp", action="store_true", help="keep the original timestamp of PNG files.")
 
     args = parser.parse_args()
     quality = args.quality
@@ -109,7 +115,7 @@ def main():
     if threads < 1:
         threads = 1
         print(f"Runs with a minimum of 1 thread.")
-    process_files(args.input, args.output, quality, threads)
+    process_files(args.input, args.output, quality, threads, args.keeptimestamp)
 
 if __name__ == "__main__":
     main()
