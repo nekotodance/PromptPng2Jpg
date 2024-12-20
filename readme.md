@@ -1,4 +1,4 @@
-## PromptPng2Jpgについて 0.1.0
+## PromptPng2Jpgについて 0.1.1
 StableDiffusionで作成したPNG画像をプロンプト情報を保持したままJPG画像に変換します  
 
 ## 特徴
@@ -6,6 +6,7 @@ StableDiffusionで作成したPNG画像をプロンプト情報を保持した�
 - マルチスレッドで高速に動作 ※1  
 - 複数ファイル、フォルダのドラッグ＆ドロップに対応 ※2
 - お好みでGUIでもCUIでも利用可能  
+- 変換したjpgファイルのタイムスタンプを元のpngファイルに合わせる事も可能
 
 ※1:Ryzen5 5600で1024x1344dotのpng1000枚をjpgに変換するのに5秒程度  
 ※2:GUI版のみ
@@ -66,6 +67,9 @@ JPG品質は1-100が指定でき、デフォルト値は85としています
 ###### 2-2)Number of Threads
 スレッド数は1-「CPUの最大スレッド数」が指定でき、デフォルト値は「CPUの最大スレッド数 - 1」としています  
 CPUの最大スレッド数を指定した方がほんの少しだけ早く終わりますが、OS動作がカクカクするかもしれません  
+###### 2-3)keep timestamp
+チェックした場合、変換したjpgのタイムスタンプを元のPNGファイルに合わせます  
+shutil.copystat()を利用しているため最終更新日時以外のファイル情報もコピーされます  
 
 #### 3)Convertボタンを押す  
 変換を開始します ※3  
@@ -78,7 +82,7 @@ CPUの最大スレッド数を指定した方がほんの少しだけ早く終�
 
 ## 利用方法（コマンドライン版）
 以下の方法で利用できます  
-usage: PromptPng2Jpg.py [-h] [--quality QUALITY] [--threads THREADS] input output  
+usage: PromptPng2Jpg.py [-h] [--quality QUALITY] [--threads THREADS] [--keeptimestamp] input output  
   
 Convert PNG to JPG with metadata.  
   
@@ -90,10 +94,15 @@ options:
   -h, --help         : show this help message and exit  
   --quality QUALITY  : JPEG quality (1-100). Default is 85.  
   --threads THREADS  : Number of threads for parallel processing. Default is CPU Max Thread - 1.  
-    
+  --keeptimestamp    : keep the original timestamp of PNG files.  
+
 ## 注意事項
 - Prompt情報はjpgのExifのUserCommentに保存しています  
 - Automatic1111とForgeの出力したPNGファイルでしか確認していません  
 - アプリによってはjpgのExifコメントの文字コードを正確に判断できないかもしれませんが、ForgeのPNG Infoでの読み込みが正常に行われる事を優先しました  
+
+## 変更履歴
+- 0.1.1 変換元のPNGファイルのタイムスタンプを保持する設定を追加
+- 0.1.0 初版
 
 以上
