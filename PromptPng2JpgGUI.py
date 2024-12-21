@@ -265,11 +265,10 @@ class MainWindow(QMainWindow):
             self.threadsnum = os.cpu_count() - 1
         if self.threadsnum < 1 or self.threadsnum > os.cpu_count():
             self.threadsnum = os.cpu_count() - 1
-            if self.threadsnum < 1:
-                self.threadsnum = 1 #今どき、1スレッドのCPUはないでしょうけど念の為
-        try:
-            self.keepTimestamp = pvsubfunc.read_value_from_config(SETTINGS_FILE, KEEP_TIMESTAMP)
-        except Exception as e:
+        if self.threadsnum < 1:
+            self.threadsnum = 1 #今どき、1スレッドのCPUはないでしょうけど念の為
+        self.keepTimestamp = pvsubfunc.read_value_from_config(SETTINGS_FILE, KEEP_TIMESTAMP)
+        if self.keepTimestamp == "None":
             self.keepTimestamp = True
 
         #self.setGeometry(100, 100, 640, 480)    #位置とサイズ
