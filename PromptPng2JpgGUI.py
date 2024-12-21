@@ -253,21 +253,33 @@ class MainWindow(QMainWindow):
 
     #設定ファイルの読込
     def load_settings(self):
-        self.jpgquality = int(str(pvsubfunc.read_value_from_config(SETTINGS_FILE, JPG_QUALITY)))
+        try:
+            self.jpgquality = int(str(pvsubfunc.read_value_from_config(SETTINGS_FILE, JPG_QUALITY)))
+        except Exception as e:
+            self.jpgquality = 85
         if self.jpgquality < 1 or self.jpgquality > 100:
             self.jpgquality = 85
-        self.threadsnum = int(str(pvsubfunc.read_value_from_config(SETTINGS_FILE, THREADS_NUM)))
+        try:
+            self.threadsnum = int(str(pvsubfunc.read_value_from_config(SETTINGS_FILE, THREADS_NUM)))
+        except Exception as e:
+            self.threadsnum = os.cpu_count() - 1
         if self.threadsnum < 1 or self.threadsnum > os.cpu_count():
             self.threadsnum = os.cpu_count() - 1
             if self.threadsnum < 1:
                 self.threadsnum = 1 #今どき、1スレッドのCPUはないでしょうけど念の為
-        self.keepTimestamp = pvsubfunc.read_value_from_config(SETTINGS_FILE, KEEP_TIMESTAMP)
+        try:
+            self.keepTimestamp = pvsubfunc.read_value_from_config(SETTINGS_FILE, KEEP_TIMESTAMP)
+        except Exception as e:
+            self.keepTimestamp = True
 
         #self.setGeometry(100, 100, 640, 480)    #位置とサイズ
-        geox = pvsubfunc.read_value_from_config(SETTINGS_FILE, GEOMETRY_X)
-        geoy = pvsubfunc.read_value_from_config(SETTINGS_FILE, GEOMETRY_Y)
-        geow = pvsubfunc.read_value_from_config(SETTINGS_FILE, GEOMETRY_W)
-        geoh = pvsubfunc.read_value_from_config(SETTINGS_FILE, GEOMETRY_H)
+        try:
+            geox = pvsubfunc.read_value_from_config(SETTINGS_FILE, GEOMETRY_X)
+            geoy = pvsubfunc.read_value_from_config(SETTINGS_FILE, GEOMETRY_Y)
+            geow = pvsubfunc.read_value_from_config(SETTINGS_FILE, GEOMETRY_W)
+            geoh = pvsubfunc.read_value_from_config(SETTINGS_FILE, GEOMETRY_H)
+        except Exception as e:
+            self.setGeometry(0, 0, 640, 480)    #位置とサイズ
         if any(val is None for val in [geox, geoy, geow, geoh]):
             self.setGeometry(0, 0, 640, 480)    #位置とサイズ
         else:

@@ -10,7 +10,12 @@ def extract_png_metadata(png_file):
     try:
         with Image.open(png_file) as img:
             if isinstance(img, PngImagePlugin.PngImageFile):
-                metadata = img.info.get("parameters", "")
+                metadata = img.info.get("parameters", "") #1:sd1111 or forge png
+                #--------
+                #T.B.C.:変換後のファイルはComfyUIで開けないが、一応exifコメントには格納しておく用に対応
+                #--------
+                if not metadata:
+                    metadata = img.info.get("prompt", "") #2:comfyUI png
                 return metadata
     except Exception as e:
         print(f"Error reading PNG metadata: {e}")
