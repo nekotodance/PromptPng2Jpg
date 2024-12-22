@@ -64,6 +64,8 @@ class MainWindow(QMainWindow):
         self.jpgquality = 85  # デフォルトのJPEG品質
         self.threadsnum = 11  # デフォルトのスレッド数
         self.keepTimestamp = True  # Time stampの維持
+        self.totalfilenum = 0   # 変換対象のトータルファイル数
+        self.totalfilestrlen = 0    # 変換対象のトータルファイル数を文字列化した時の桁数
 
         self.setWindowTitle('PNG to JPG Converter')
         self.setGeometry(100, 100, 640, 480)
@@ -163,6 +165,9 @@ class MainWindow(QMainWindow):
         self.converted_files = 0
         self.start_time = time.time()  # 変換開始時刻
 
+        self.totalfilenum = len(self.file_paths)    # 変換対象ファイル数
+        self.totalfilestrlen = len(str(self.totalfilenum)) #変換対象ファイル数を文字列にした時の桁数（表示用）
+
         self.cancelButton.setEnabled(True)  # キャンセルボタンを有効化
         self.convertButton.setEnabled(False)  # 変換ボタンを無効化
 
@@ -198,11 +203,17 @@ class MainWindow(QMainWindow):
             self.converted_files += 1
 
         # すべてのファイルが変換されたか確認
-        if self.converted_files == len(self.file_paths):
+        if self.converted_files == self.totalfilenum:
             elapsed_time = time.time() - self.start_time  # 経過時間
-            self.statusBar.showMessage(f'Conversion complete! {self.converted_files} files converted in {elapsed_time:.2f} seconds.')
+            mes = f'Conversion complete! {self.converted_files} files converted in {elapsed_time:.2f} seconds.'
+            self.statusBar.showMessage(mes)
+            print(mes)
             self.convertButton.setEnabled(True)
             self.cancelButton.setEnabled(False)
+        else:
+            mes = f'Converting... [{self.converted_files:0{self.totalfilestrlen}}/{self.totalfilenum:0{self.totalfilestrlen}}]'
+            self.statusBar.showMessage(mes)
+            pvsubfunc.dbgprint(mes)
 
     # 設定値更新時処理
     def update_jpgquality_values(self):
