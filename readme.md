@@ -1,3 +1,10 @@
+
+-=-=-=-=-=  
+これは以下のソフトの下位互換版となります。通常は下のものを利用してください  
+This software is a backward compatible version of the following. Normally, you should use the lower version.  
+[SdImageDiet](https://github.com/nekotodance/SdImageDiet)  
+-=-=-=-=-=  
+  
 ## PromptPng2Jpgについて 0.1.1
 StableDiffusionで作成したPNG画像をプロンプト情報を保持したままJPG画像に変換します  
 
